@@ -1,63 +1,66 @@
-//js
-
 var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera(75, window.innerWidth
+var camera = new THREE.PerspectiveCamera(45, window.innerWidth
                     / window.innerHeight, 0.1, 1000);
 
-var directionalLight = new THREE.DirectionalLight(0x101010, 0.5);
-directionalLight.castShadow = true;
-directionalLight.shadowDarkness = 0.5;
-directionalLight.shadowCameraVisible = true;
-scene.add(directionalLight);
-
-
+// Initialise renderer
 var renderer = new THREE.WebGLRenderer();
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMapEnabled = true;
+renderer.setClearColor(new THREE.Color('#EEEEEE', 1.0));
 document.body.appendChild(renderer.domElement);
 
+// Add light
+var spotLight = new THREE.SpotLight('#FFFFFF');
+spotLight.position.set(0, 100, 0);
+spotLight.castShadow = true;
+spotLight.lookAt(new THREE.Vector3(0, 0, 0));
+scene.add(spotLight);
+
 // Add cube
-var geometry = new THREE.BoxGeometry(50, 50, 50);
-var material = new THREE.MeshBasicMaterial( {color: '#00FF00'} );
-var cube = new THREE.Mesh(geometry, material);
-cube.castShadow = true;
-cube.receiveShadow = true;
-scene.add(cube);
+var geometry = new THREE.BoxGeometry(5, 5, 5);
+var material = new THREE.MeshLambertMaterial( {color: '#00FF00'} );
 
-// Add Grid
-var size = 500,
-    step = 50;
+var size = {'x': 15, 'z': 15};
+var width = 6;
+var depth = 6;
+var randRange = 3;
 
-var geometry = new THREE.Geometry();
+var cubes =  [];
 
-for (var i = -size; i <= size; i += step) {
-    geometry.vertices.push( new THREE.Vector3(-size, 0, i));
-    geometry.vertices.push( new THREE.Vector3( size, 0, i));
-
-    geometry.vertices.push( new THREE.Vector3( i, 0, -size));
-    geometry.vertices.push( new THREE.Vector3( i, 0,  size));
+for (var x = - (size['x'] * width) / 2; x < (size['x'] * width) / 2; x += width) {
+    for (var z = - (size['z'] * depth) / 2; z < (size['z'] * depth) / 2; z += depth) {
+        var cube = new THREE.Mesh(geometry, material);
+        cube.castShadow = true;
+        cube.position.x = x;
+        cube.position.y = Math.floor(Math.random() * randRange);
+        cube.position.z = z;
+        scene.add(cube);
+        cubes.push(cube);
+    }
 }
 
-var material = new THREE.LineBasicMaterial({color: '#FFFFFF'});
 
-var line = new THREE.Line(geometry, material, THREE.LinePieces);
-scene.add(line);
+camera.position.y = 150;
+camera.position.x = 100;
+camera.position.z = 100;
+camera.lookAt(new THREE.Vector3(0, 0, 0));
 
-camera.position.z = 500;
-
-directionalLight.position.z = 500;
-
-line.rotation.x = 0.2;
-cube.rotation.x = 0.2;
-cube.rotation.y = 1;
-cube.position.y += 50;
-
+var updatePercent = 0;
 
 function render() {
     requestAnimationFrame(render);
-    //cube.rotation.x += 0.01;
+
+    for (var i = 0;i < cubes.length; i++) {
+        if (Math.random() > updatePercent) {
+            if (Math.random() > 0.5) {
+                cubes[i].position.y -= 1;
+            } else {
+                cubes[i].position.y += 1;
+            }
+        }
+    }
+
     renderer.render(scene, camera);
-    //line.rotation.x += 0.01;
 }
 
-render()
+render();
